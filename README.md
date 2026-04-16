@@ -6,7 +6,7 @@ A RESTful API built with **Laravel** and **Laravel Sanctum** that allows authent
 
 ## Tech Stack
 
-- **PHP / Laravel 12**
+- **PHP / Laravel 13**
 - **Laravel Sanctum** — token-based authentication
 - **MySQL** — database
 - **PHPUnit** — unit & feature testing
