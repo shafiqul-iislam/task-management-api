@@ -1,58 +1,254 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Task Management API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A RESTful API built with **Laravel** and **Laravel Sanctum** that allows authenticated users to manage their own tasks — create, list, update, delete, and mark as completed.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **PHP / Laravel 12**
+- **Laravel Sanctum** — token-based authentication
+- **MySQL** — database
+- **PHPUnit** — unit & feature testing
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup Instructions
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clone the repository
+git clone https://github.com/shafiqul-iislam/task-management-api.git
+cd task-management-api
 
-php artisan boost:install
+# 2. Install dependencies
+composer install
+
+# 3. Copy environment file and generate app key
+cp .env.example .env
+php artisan key:generate
+
+# 4. Configure your database in .env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=task_management
+DB_USERNAME=root
+DB_PASSWORD=
+
+# 5. Run migrations
+php artisan migrate
+
+# 6. Start the development server
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## API Endpoints
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Authentication
 
-## Code of Conduct
+| Method | Endpoint | Auth Required | Description |
+|--------|----------|:---:|-------------|
+| `POST` | `/api/register` | ❌ | Register a new user |
+| `POST` | `/api/login` | ❌ | Login and receive a token |
+| `POST` | `/api/logout` | ✅ | Logout and revoke token |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Tasks
 
-## Security Vulnerabilities
+| Method | Endpoint | Auth Required | Description |
+|--------|----------|:---:|-------------|
+| `GET` | `/api/tasks` | ✅ | List all your tasks (with filters) |
+| `POST` | `/api/tasks` | ✅ | Create a new task |
+| `GET` | `/api/tasks/{id}` | ✅ | Get a single task |
+| `PUT` | `/api/tasks/{id}` | ✅ | Update a task |
+| `DELETE` | `/api/tasks/{id}` | ✅ | Delete a task |
+| `PATCH` | `/api/tasks/{id}/complete` | ✅ | Mark a task as completed |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Query filters available on `GET /api/tasks`:**
 
-## License
+| Parameter | Example | Description |
+|-----------|---------|-------------|
+| `status` | `?status=pending` | Filter by status (`pending`, `in_progress`, `completed`) |
+| `due_date` | `?due_date=2026-04-20` | Filter by due date |
+| `search` | `?search=laravel` | Search tasks by title (partial match) |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Authentication Flow
+
+All task endpoints require a **Bearer Token** in the `Authorization` header:
+
+```
+Authorization: Bearer <your-token>
+```
+
+You receive the token after a successful **Register** or **Login** request.
+
+---
+
+## Registration — Password Requirements
+
+The API enforces strict password rules to protect user accounts:
+
+| Rule | Requirement |
+|------|-------------|
+| **Minimum length** | At least **8 characters** |
+| **Mixed case** | Must contain both **uppercase** and **lowercase** letters |
+| **Numbers** | Must contain at least one **number** |
+| **Symbols** | Must contain at least one **special character** (e.g. `!`, `@`, `#`) |
+| **Uncompromised** | Must **not appear** in known data breach databases |
+| **Confirmation** | `password` and `password_confirmation` **must match** |
+
+**Good password example:** `Str0ng!Passw0rd#2026`
+
+**Bad password examples:**
+- `password123` — no uppercase, no symbol
+- `Password!` — no number
+- `SHORT1!` — too short (under 8 characters)
+- `password` — known compromised password
+
+---
+
+## Postman Screenshots
+
+### Register — `POST /api/register`
+
+![Register](public/screenshots/register.png)
+
+### Login — `POST /api/login`
+
+![Login](public/screenshots/login.png)
+
+### Logout — `POST /api/logout`
+
+![Logout](public/screenshots/logout.png)
+
+### Create Task — `POST /api/tasks`
+
+![Create Task](public/screenshots/task_create.png)
+
+### List Tasks — `GET /api/tasks`
+
+![List Tasks](public/screenshots/task_list.png)
+
+### Mark as Completed — `PATCH /api/tasks/{id}/complete`
+
+![Mark as Completed](public/screenshots/task-completed.png)
+
+---
+
+## Request & Response Examples
+
+### Register
+
+**Request body:**
+```json
+{
+  "name": "Shafiq",
+  "email": "shafiq@gmail.com",
+  "password": "Str0ng!Passw0rd#2026",
+  "password_confirmation": "Str0ng!Passw0rd#2026"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "message": "User registered successfully",
+  "data": {
+    "user": { "id": 1, "name": "Shafiq", "email": "shafiq@gmail.com" },
+    "token": "1|fnDxnhWxxYrMGNp9bkOSWPa8jDJ51hmv3TLGLqCP2ebf794b"
+  }
+}
+```
+
+---
+
+### Create Task
+
+**Request body:**
+```json
+{
+  "title": "Finish Unit Test",
+  "description": "Complete task unit test",
+  "status": "pending",
+  "due_date": "2026-04-20"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "success": true,
+  "message": "Task created successfully",
+  "data": {
+    "id": 4,
+    "title": "Finish Unit Test",
+    "description": "Complete task unit test",
+    "status": "pending",
+    "due_date": "2026-04-20",
+    "created_at": "2026-04-16 14:40:12",
+    "updated_at": "2026-04-16 14:40:12"
+  }
+}
+```
+
+---
+
+### Error Response (Validation)
+
+```json
+{
+  "success": false,
+  "message": "The title field is required.",
+  "errors": {
+    "title": ["The title field is required."]
+  }
+}
+```
+
+---
+
+## Running Tests
+
+```bash
+php artisan test
+```
+
+The project includes both **Unit** and **Feature** tests:
+
+- **Unit** — tests business logic in `TaskService` directly (no HTTP layer)
+- **Feature** — tests the full API endpoints end-to-end
+
+```
+PASS  Tests\Unit\TaskServiceTest
+✓ creates task with default pending status
+✓ find throws not found for missing task
+✓ find throws unauthorized for wrong user
+
+PASS  Tests\Feature\TaskApiTest
+✓ index requires authentication
+✓ store creates task
+✓ store requires title
+✓ cannot access another users task
+✓ mark completed is idempotent
+```
+
+---
+
+## Architecture
+
+```
+app/
+├── Http/
+│   ├── Controllers/API/    # Thin HTTP controllers
+│   ├── Requests/           # Form Requests (validation)
+│   └── Resources/          # API response formatting
+├── Services/
+│   └── TaskService.php     # Business logic layer
+├── Models/
+│   └── Task.php
+└── Enums/
+    └── TaskStatusEnum.php  # pending | in_progress | completed
+```
